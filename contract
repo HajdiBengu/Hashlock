@@ -1,0 +1,28 @@
+# Hashlock Contract
+
+import smartpy as sp
+
+class Hashlock(sp.Contract):
+    def __init__(self):
+        self.init(revealTime = sp.now,
+                  hashed     = sp.bytes("placeholder"),
+                  used       = False,
+                  originator = sp.sender)
+
+    @sp.entry_point
+    def commit(self, params):
+        sp.verify_equal(sp.source, self.data.originator, message = "You are not allowed to commit to this contract")
+        self.data.revealTime = sp.now.add_days(1)
+        salted = params.hash + sp.pack(params.receiver)
+        self.data.hashed = sp.sha256(salted)
+
+    @sp.entry_point
+    def reveal(self, params):
+        sp.verify(self.data.used == False, message = "This contract has already been used.")
+        sp.verify(sp.now > self.data.revealTime, message = "It has not been 24 hours since your commit yet.")
+        hashedNumber = sp.sha256(params)
+        salted = hashedNumber + sp.pack(sp.sender)
+        revealHash = sp.sha256(salted)
+        sp.verify_equal(self.data.hashed, revealHash, message = "Reveal did not match commit.")
+        self.data.used = True
+        operations().push(transfer_operation("", sp.tez(3), params.receiver))
