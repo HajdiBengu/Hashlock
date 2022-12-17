@@ -5,7 +5,7 @@ import smartpy as sp
 class Hashlock(sp.Contract):
     def __init__(self):
         self.init(revealTime = sp.now,
-                  hashed     = sp.bytes("placeholder"),
+                  hashed     = sp.bytes("0x0dae11"),
                   used       = False,
                   originator = sp.sender)
 
@@ -25,4 +25,10 @@ class Hashlock(sp.Contract):
         revealHash = sp.sha256(salted)
         sp.verify_equal(self.data.hashed, revealHash, message = "Reveal did not match commit.")
         self.data.used = True
-        operations().push(transfer_operation("", sp.tez(3), params.receiver))
+        sp.operations().push(sp.transfer_operation("", sp.tez(3), sp.contract(params)))
+
+@sp.add_test(name = "A Test")
+def test():
+    scenario = sp.test_scenario()
+    c1 = Hashlock()
+    scenario += c1
