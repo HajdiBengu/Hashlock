@@ -25,10 +25,13 @@ class Hashlock(sp.Contract):
         revealHash = sp.sha256(salted)
         sp.verify_equal(self.data.hashed, revealHash, message = "Reveal did not match commit.")
         self.data.used = True
-        sp.operations().push(sp.transfer_operation("", sp.tez(3), sp.contract(params)))
+        # sp.operations().push(sp.transfer_operation("", sp.tez(3), sp.contract(params), line_no))
 
-@sp.add_test(name = "A Test")
+@sp.add_test(name = "Commit test")
 def test():
     scenario = sp.test_scenario()
     c1 = Hashlock()
+    c1.set_initial_balance(sp.tez(15))
+    admin = sp.test_account("Administrator")
     scenario += c1
+    c1.commit(hash = sp.bytes("51e8ea280b44e16934d4d611901f3d3afc41789840acdff81942c2f65009cd52"), receiver = "tz1YbCiXtXZ2HtXGecejTbbpww4GzFH7HvYQ").run(sender = admin)
