@@ -1,0 +1,47 @@
+import smartpy as sp
+
+
+class Hashlock(sp.Contract):
+    def __init__(self, address):
+        self.init(admin=address,
+                  revealed=True,
+                  amount=sp.tez(0),
+                  reveal_time=sp.timestamp(0),
+                  salted=sp.bytes('0x'),
+                  receiver=sp.address("tz1YbCiXtXZ2HtXGecejTbbpww4GzFH7HvYQ")
+                  )
+
+    @sp.entry_point
+    def commit(self, receiver, amount, hash):
+        sp.verify_equal(sp.source, self.data.admin, message="You are not allowed to commit to this contract.")
+        sp.verify(self.data.revealed == True, message="You cannot commit while the old hash is not revealed.")
+        sp.verify(sp.amount >= amount, message="This contract does not own enough tz.")
+        today = sp.now
+        reveal_time = today.add_days(1)
+        
+        sp.verify(close_date > in_7_day, message="The raffle must remain open for at least 7 days.")
+        self.data.close_date = close_date
+        self.data.jackpot = jackpot_amount
+        self.data.hash_winning_ticket = hash_winning_ticket
+
+    @sp.add_test(name="Hashlock")
+    def test():
+        alice = sp.test_account("Alice")
+        bob = sp.test_account("Bob")
+        admin = sp.test_account("Administrator")
+        r = Hashlock(admin.address)
+        scenario = sp.test_scenario()
+        scenario.h1("Contract Origination")
+        scenario += r
+
+        scenario.h2("Test commit entrypoint")
+        receiver = bob
+        amount = sp.tez(10)
+        number_winning_ticket = sp.nat(345)
+        bytes_winning_ticket = sp.pack(number_winning_ticket)
+        hash_winning_ticket = sp.sha256(bytes_winning_ticket)
+        
+        scenario.h3("The unauthorized user Alice unsuccessfully call open_raffle")
+        scenario += r.commit(close_date=close_date, jackpot_amount=jackpot_amount,
+        hash_winning_ticket=hash_winning_ticket).run(source=alice.address, amount=sp.tez(10), now=sp.timestamp_from_utc_now(),
+         valid=False)
