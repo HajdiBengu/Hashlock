@@ -1,6 +1,5 @@
 import smartpy as sp
 
-
 class Hashlock(sp.Contract):
     def __init__(self, address):
         self.init(admin=address,
@@ -18,12 +17,24 @@ class Hashlock(sp.Contract):
         sp.verify(sp.amount >= amount, message="This contract does not own enough tz.")
         today = sp.now
         reveal_time = today.add_days(1)
-        
-        sp.verify(close_date > in_7_day, message="The raffle must remain open for at least 7 days.")
-        self.data.close_date = close_date
-        self.data.jackpot = jackpot_amount
-        self.data.hash_winning_ticket = hash_winning_ticket
+        salted = hash + sp.pack(receiver)
+        self.data.salted = sp.sha256(salted)
+        self.data.reveal_time = reveal_time
+        self.data.amount = amount
+        self.data.revealed = False
+        self.data.receiver = receiver
 
+    @sp.entry_point
+    def reveal(self, number):
+        sp.verify(sp.now >= self.data.reveal_time, message="You cannot reveal unless 1 day has passed since commit.")
+        sp.verify(self.data.revealed == True, message="Commit has already been revealed.")
+        hashedNumber = sp.sha256(number)
+        salted = hashedNumber + sp.pack(sp.source)
+        revealHash = sp.sha256(salted)
+        sp.verify_equal(self.data.salted, revealHash, message = "Reveal did not match commit.")
+        self.data.revealed = True
+        sp.send(sp.source, self.data.amount, message="Address not found.")
+        
     @sp.add_test(name="Hashlock")
     def test():
         alice = sp.test_account("Alice")
@@ -34,14 +45,17 @@ class Hashlock(sp.Contract):
         scenario.h1("Contract Origination")
         scenario += r
 
-        scenario.h2("Test commit entrypoint")
+        scenario.h2("Test 'commit' entrypoint")
         receiver = bob
         amount = sp.tez(10)
-        number_winning_ticket = sp.nat(345)
-        bytes_winning_ticket = sp.pack(number_winning_ticket)
-        hash_winning_ticket = sp.sha256(bytes_winning_ticket)
+        random_number = sp.nat(345)
+        bytes_random_number = sp.pack(random_number)
+        hash = sp.sha256(bytes_random_number)
         
-        scenario.h3("The unauthorized user Alice unsuccessfully call open_raffle")
-        scenario += r.commit(close_date=close_date, jackpot_amount=jackpot_amount,
-        hash_winning_ticket=hash_winning_ticket).run(source=alice.address, amount=sp.tez(10), now=sp.timestamp_from_utc_now(),
-         valid=False)
+        scenario.h3("The authorized admin successfully calls commit")
+        scenario += r.commit(receiver=receiver.address, amount=amount,
+        hash=hash).run(source=admin.address, amount=sp.tez(10), now=sp.timestamp_from_utc_now())
+
+        scenario.h3("The unauthorized user alice unsuccessfully calls commit")
+        scenario += r.commit(receiver=receiver.address, amount=amount,
+        hash=hash).run(source=alice.address, amount=sp.tez(10), now=sp.timestamp_from_utc_now(), valid=False)
