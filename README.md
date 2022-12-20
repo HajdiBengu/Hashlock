@@ -7,7 +7,7 @@
 #### Description:
 The source code in the .tz file is a smart contract that can be deployed in the Tezos Blockchain. It is transpiled in Michelson from SmartPy (the function of which is to make smart contract development easier).
 
-The goal of the hashlock/timelock smart contract is to contain tez (Tezos' native coin) and transfer it to the intended receiver after some time, if the caller can cryptographically prove that he is the intended receiver. It has two callable functions: 1. commit and 2. Reveal.
+The goal of the hashlock/timelock smart contract is to contain tez (Tezos' native coin) and transfer it to the intended receiver after some time, if the caller can cryptographically prove that he is the intended receiver. It has two callable functions: 1. Commit and 2. Reveal.
 
 The way it works is that the sender of the tez (who is also the originator of the contract) can choose a random number and find its sha256 hash. He then, and only he can call the "commit” function and can feed three arguments to it: the intended receiver’s address, the hash of the random number and the amount he wants to send. The algorithm salts the hash with the receiver's address.
 
