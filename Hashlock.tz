@@ -1,164 +1,117 @@
-parameter (or (pair %commit (mutez %amount) (pair (bytes %hash) (address %receiver))) (nat %reveal));
-storage   (pair (pair (address %admin) (pair (mutez %amount) (address %receiver))) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))));
-code
-  {
-    UNPAIR;     # @parameter : @storage
-    IF_LEFT
-      {
-        SWAP;       # @storage : @parameter%commit
-        # == commit ==
-        # sp.verify(sp.pack(sp.set_type_expr(sp.source, sp.TAddress)) == sp.pack(sp.set_type_expr(self.data.admin, sp.TAddress)), 'You are not allowed to commit to this contract.') # @storage : @parameter%commit
-        DUP;        # @storage : @storage : @parameter%commit
-        DUG 2;      # @storage : @parameter%commit : @storage
-        CAR;        # pair (address %admin) (pair (mutez %amount) (address %receiver)) : @parameter%commit : @storage
-        CAR;        # address : @parameter%commit : @storage
-        PACK;       # bytes : @parameter%commit : @storage
-        SOURCE;     # @source : bytes : @parameter%commit : @storage
-        PACK;       # bytes : bytes : @parameter%commit : @storage
-        COMPARE;    # int : @parameter%commit : @storage
-        EQ;         # bool : @parameter%commit : @storage
-        IF
-          {}
-          {
-            PUSH string "You are not allowed to commit to this contract."; # string : @parameter%commit : @storage
-            FAILWITH;   # FAILED
-          }; # @parameter%commit : @storage
-        # sp.verify(self.data.revealed == True, 'You cannot commit while the old hash is not revealed.') # @parameter%commit : @storage
-        PUSH bool True; # bool : @parameter%commit : @storage
-        DUP 3;      # @storage : bool : @parameter%commit : @storage
-        GET 5;      # bool : bool : @parameter%commit : @storage
-        COMPARE;    # int : @parameter%commit : @storage
-        EQ;         # bool : @parameter%commit : @storage
-        IF
-          {}
-          {
-            PUSH string "You cannot commit while the old hash is not revealed."; # string : @parameter%commit : @storage
-            FAILWITH;   # FAILED
-          }; # @parameter%commit : @storage
-        # sp.verify(sp.amount >= params.amount, 'This contract does not own enough tz.') # @parameter%commit : @storage
-        DUP;        # @parameter%commit : @parameter%commit : @storage
-        CAR;        # mutez : @parameter%commit : @storage
-        AMOUNT;     # @amount : mutez : @parameter%commit : @storage
-        COMPARE;    # int : @parameter%commit : @storage
-        GE;         # bool : @parameter%commit : @storage
-        IF
-          {}
-          {
-            PUSH string "This contract does not own enough tz."; # string : @parameter%commit : @storage
-            FAILWITH;   # FAILED
-          }; # @parameter%commit : @storage
-        # self.data.salted = sp.sha256(params.hash + sp.pack(params.receiver)) # @parameter%commit : @storage
-        DUP;        # @parameter%commit : @parameter%commit : @storage
-        DUG 2;      # @parameter%commit : @storage : @parameter%commit
-        GET 4;      # address : @storage : @parameter%commit
-        PACK;       # bytes : @storage : @parameter%commit
-        DUP 3;      # @parameter%commit : bytes : @storage : @parameter%commit
-        GET 3;      # bytes : bytes : @storage : @parameter%commit
-        CONCAT;     # bytes : @storage : @parameter%commit
-        SHA256;     # bytes : @storage : @parameter%commit
-        UPDATE 6;   # @storage : @parameter%commit
-        # self.data.reveal_time = sp.add_seconds(sp.now, 86400) # @storage : @parameter%commit
-        PUSH int 86400; # int : @storage : @parameter%commit
-        NOW;        # @now : int : @storage : @parameter%commit
-        ADD;        # timestamp : @storage : @parameter%commit
-        UPDATE 3;   # @storage : @parameter%commit
-        # self.data.amount = params.amount # @storage : @parameter%commit
-        UNPAIR;     # pair (address %admin) (pair (mutez %amount) (address %receiver)) : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        UNPAIR;     # address : pair (mutez %amount) (address %receiver) : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        SWAP;       # pair (mutez %amount) (address %receiver) : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        CDR;        # address : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        DUP 4;      # @parameter%commit : address : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        CAR;        # mutez : address : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        PAIR;       # pair mutez address : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        SWAP;       # address : pair mutez address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        PAIR;       # pair address (pair mutez address) : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        PAIR;       # pair (pair address (pair mutez address)) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))) : @parameter%commit
-        # self.data.revealed = False # pair (pair address (pair mutez address)) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))) : @parameter%commit
-        PUSH bool False; # bool : pair (pair address (pair mutez address)) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))) : @parameter%commit
-        UPDATE 5;   # pair (pair address (pair mutez address)) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))) : @parameter%commit
-        # self.data.receiver = params.receiver # pair (pair address (pair mutez address)) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))) : @parameter%commit
-        UNPAIR;     # pair address (pair mutez address) : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        UNPAIR;     # address : pair mutez address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        SWAP;       # pair mutez address : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        CAR;        # mutez : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)) : @parameter%commit
-        DIG 3;      # @parameter%commit : mutez : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))
-        GET 4;      # address : mutez : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))
-        SWAP;       # mutez : address : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))
-        PAIR;       # pair mutez address : address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))
-        SWAP;       # address : pair mutez address : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))
-        PAIR;       # pair address (pair mutez address) : pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))
-        PAIR;       # pair (pair address (pair mutez address)) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)))
-        NIL operation; # list operation : pair (pair address (pair mutez address)) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)))
-      }
-      {
-        SWAP;       # @storage : @parameter%reveal
-        # == reveal ==
-        # sp.verify(sp.now >= self.data.reveal_time, 'You cannot reveal unless 1 day has passed since commit.') # @storage : @parameter%reveal
-        DUP;        # @storage : @storage : @parameter%reveal
-        DUG 2;      # @storage : @parameter%reveal : @storage
-        GET 3;      # timestamp : @parameter%reveal : @storage
-        NOW;        # @now : timestamp : @parameter%reveal : @storage
-        COMPARE;    # int : @parameter%reveal : @storage
-        GE;         # bool : @parameter%reveal : @storage
-        IF
-          {}
-          {
-            PUSH string "You cannot reveal unless 1 day has passed since commit."; # string : @parameter%reveal : @storage
-            FAILWITH;   # FAILED
-          }; # @parameter%reveal : @storage
-        # sp.verify(self.data.revealed == False, 'Commit has already been revealed.') # @parameter%reveal : @storage
-        PUSH bool False; # bool : @parameter%reveal : @storage
-        DUP 3;      # @storage : bool : @parameter%reveal : @storage
-        GET 5;      # bool : bool : @parameter%reveal : @storage
-        COMPARE;    # int : @parameter%reveal : @storage
-        EQ;         # bool : @parameter%reveal : @storage
-        IF
-          {}
-          {
-            PUSH string "Commit has already been revealed."; # string : @parameter%reveal : @storage
-            FAILWITH;   # FAILED
-          }; # @parameter%reveal : @storage
-        # sp.verify(sp.pack(sp.set_type_expr(self.data.salted, sp.TBytes)) == sp.pack(sp.set_type_expr(sp.sha256(sp.sha256(sp.pack(params)) + sp.pack(sp.source)), sp.TBytes)), 'Reveal did not match commit.') # @parameter%reveal : @storage
-        SOURCE;     # @source : @parameter%reveal : @storage
-        PACK;       # bytes : @parameter%reveal : @storage
-        SWAP;       # @parameter%reveal : bytes : @storage
-        PACK;       # bytes : bytes : @storage
-        SHA256;     # bytes : bytes : @storage
-        CONCAT;     # bytes : @storage
-        SHA256;     # bytes : @storage
-        PACK;       # bytes : @storage
-        SWAP;       # @storage : bytes
-        DUP;        # @storage : @storage : bytes
-        DUG 2;      # @storage : bytes : @storage
-        GET 6;      # bytes : bytes : @storage
-        PACK;       # bytes : bytes : @storage
-        COMPARE;    # int : @storage
-        EQ;         # bool : @storage
-        IF
-          {}
-          {
-            PUSH string "Reveal did not match commit."; # string : @storage
-            FAILWITH;   # FAILED
-          }; # @storage
-        # self.data.revealed = True # @storage
-        PUSH bool True; # bool : @storage
-        UPDATE 5;   # @storage
-        # sp.transfer(sp.unit, self.data.amount, sp.contract(sp.TUnit, sp.source).open_some(message = 'Address not found.')) # @storage
-        NIL operation; # list operation : @storage
-        SOURCE;     # @source : list operation : @storage
-        CONTRACT unit; # option (contract unit) : list operation : @storage
-        IF_NONE
-          {
-            PUSH string "Address not found."; # string : list operation : @storage
-            FAILWITH;   # FAILED
-          }
-          {}; # @some : list operation : @storage
-        DUP 3;      # @storage : @some : list operation : @storage
-        CAR;        # pair (address %admin) (pair (mutez %amount) (address %receiver)) : @some : list operation : @storage
-        GET 3;      # mutez : @some : list operation : @storage
-        UNIT;       # unit : mutez : @some : list operation : @storage
-        TRANSFER_TOKENS; # operation : list operation : @storage
-        CONS;       # list operation : @storage
-      }; # list operation : pair (pair address (pair mutez address)) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted)))
-    PAIR;       # pair (list operation) (pair (pair address (pair mutez address)) (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))))
-  };
+parameter (or (pair %commit (mutez %amount) (pair (bytes %hash) (address %receiver)))
+              (nat %reveal));
+storage (pair (pair (address %admin) (pair (mutez %amount) (address %receiver)))
+              (pair (timestamp %reveal_time) (pair (bool %revealed) (bytes %salted))));
+code { UNPAIR ;
+       IF_LEFT
+         { SWAP ;
+           DUP ;
+           DUG 2 ;
+           CAR ;
+           CAR ;
+           PACK ;
+           SOURCE ;
+           PACK ;
+           COMPARE ;
+           EQ ;
+           IF
+             {}
+             { PUSH string "You are not allowed to commit to this contract." ; FAILWITH } ;
+           PUSH bool True ;
+           DUP 3 ;
+           GET 5 ;
+           COMPARE ;
+           EQ ;
+           IF
+             {}
+             { PUSH string "You cannot commit while the old hash is not revealed." ;
+               FAILWITH } ;
+           DUP ;
+           CAR ;
+           AMOUNT ;
+           COMPARE ;
+           GE ;
+           IF {} { PUSH string "This contract does not own enough tz." ; FAILWITH } ;
+           DUP ;
+           DUG 2 ;
+           GET 4 ;
+           PACK ;
+           DUP 3 ;
+           GET 3 ;
+           CONCAT ;
+           SHA256 ;
+           UPDATE 6 ;
+           PUSH int 86400 ;
+           NOW ;
+           ADD ;
+           UPDATE 3 ;
+           UNPAIR ;
+           UNPAIR ;
+           SWAP ;
+           CDR ;
+           DUP 4 ;
+           CAR ;
+           PAIR ;
+           SWAP ;
+           PAIR ;
+           PAIR ;
+           PUSH bool False ;
+           UPDATE 5 ;
+           UNPAIR ;
+           UNPAIR ;
+           SWAP ;
+           CAR ;
+           DIG 3 ;
+           GET 4 ;
+           SWAP ;
+           PAIR ;
+           SWAP ;
+           PAIR ;
+           PAIR ;
+           NIL operation }
+         { SWAP ;
+           DUP ;
+           DUG 2 ;
+           GET 3 ;
+           NOW ;
+           COMPARE ;
+           GE ;
+           IF
+             {}
+             { PUSH string "You cannot reveal unless 1 day has passed since commit." ;
+               FAILWITH } ;
+           PUSH bool False ;
+           DUP 3 ;
+           GET 5 ;
+           COMPARE ;
+           EQ ;
+           IF {} { PUSH string "Commit has already been revealed." ; FAILWITH } ;
+           SOURCE ;
+           PACK ;
+           SWAP ;
+           PACK ;
+           SHA256 ;
+           CONCAT ;
+           SHA256 ;
+           PACK ;
+           SWAP ;
+           DUP ;
+           DUG 2 ;
+           GET 6 ;
+           PACK ;
+           COMPARE ;
+           EQ ;
+           IF {} { PUSH string "Reveal did not match commit." ; FAILWITH } ;
+           PUSH bool True ;
+           UPDATE 5 ;
+           NIL operation ;
+           SOURCE ;
+           CONTRACT unit ;
+           IF_NONE { PUSH string "Address not found." ; FAILWITH } {} ;
+           DUP 3 ;
+           CAR ;
+           GET 3 ;
+           UNIT ;
+           TRANSFER_TOKENS ;
+           CONS } ;
+       PAIR }
