@@ -1,8 +1,6 @@
 ## Hashlock + Timelock Tezos Smart Contract
 
-#### Address:
-
-***KT1MkwdjF6KUnUrR268MGN5Ue6W2zNsYiM4c***
+#### Address: ***KT1MkwdjF6KUnUrR268MGN5Ue6W2zNsYiM4c***
 
 #### Description:
 The source code in the .tz file is a smart contract that can be deployed in the Tezos Blockchain. It is transpiled in Michelson from SmartPy (the function of which is to make smart contract development easier).
