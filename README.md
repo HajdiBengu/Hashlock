@@ -16,7 +16,7 @@ On other communication channels the admin sends the random number to the intende
 #### How to use the contract:
 This exact contract is deployed in the Ghostnet of Tezos with this contract address: ***KT1MkwdjF6KUnUrR268MGN5Ue6W2zNsYiM4c***. You’ll need a Tezos address to interact with it. However note that only the originator address can call the “commit” function and the “reveal” function won’t work unless you are the intended receiver.
 
-In order to fully interact with the contract, you’ll need to deploy a copy of it in a testnet with your own address, so that you can be the admin. Another way to test the functionalities of the contract is to use SmartPy’s online editor. A full test scenario is written in the SmartPy file which you can paste in the editor and the output panel should be updated after clicking “run”.
+In order to fully interact with the contract, you’ll need to deploy a copy of it in a testnet with your own address, so that you can be the admin. Another way to test the functionalities of the contract is to use SmartPy’s online editor. A full test scenario is written in the SmartPy file which you can paste in the editor and the output panel should be updated after clicking “run”. Better Call Dev is another tool that can be used to interact with Tezos Smart Contracts.
 
 *[SmartPy Explorer view](https://smartpy.io/explorer?address=KT1MkwdjF6KUnUrR268MGN5Ue6W2zNsYiM4c "SmartPy Explorer view")
 
