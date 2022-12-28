@@ -13,6 +13,8 @@ On other communication channels the admin sends the random number to the intende
 
 *[sha256](https://en.wikipedia.org/wiki/SHA-2 "sha256") is a cryptographic hashing function 
 
+![Functionality](functionality.png)
+
 #### How to use the contract:
 This exact contract is deployed in the Ghostnet of Tezos with this contract address: ***KT1MkwdjF6KUnUrR268MGN5Ue6W2zNsYiM4c***. You’ll need a Tezos address to interact with it. However note that only the originator address can call the “commit” function and the “reveal” function won’t work unless you are the intended receiver.
 
