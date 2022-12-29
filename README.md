@@ -13,6 +13,8 @@ On other communication channels the admin sends the random number to the intende
 
 *[sha256](https://en.wikipedia.org/wiki/SHA-2 "sha256") is a cryptographic hashing function 
 
+#### A simple graphical representation of the smart contract's hashlock functionality:
+
 ![Functionality](functionality.png)
 
 #### How to use the contract:
