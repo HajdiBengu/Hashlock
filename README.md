@@ -15,6 +15,9 @@ On other communication channels the admin sends the random number to the intende
 
 #### A simple graphical representation of the smart contract's hashlock functionality:
 
+
+![Functionality](smart-contract-functionality.png)
+
 For a more in-depth explanation, please consider reading my Medium article on the Commit/Reveal Technique:
 
 [The Commit/Reveal (Part 1): Introduction](https://medium.com/@hajdibengu/the-commit-reveal-part-1-introduction-9851e6feb7b0)
