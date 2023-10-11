@@ -39,57 +39,48 @@ def main():
                 
 @sp.add_test(name = "Hashlock")
 def test():
-        admin = sp.test_account("Administrator")
-        alice = sp.test_account("Alice")
-        bob = sp.test_account("Bob")
-        r = main.Hashlock(admin.address)
+        alice = sp.test_account("Sender")
+        bob = sp.test_account("Receiver")
+        mallory = sp.test_account("Attacker")
+    
+        r = main.Hashlock(alice.address)
         s = sp.test_scenario(main)
         s.h1("Contract Origination")
         s += r
 
-        random_number = sp.nat(345)
-        bytes_random_number = sp.pack(random_number)
-        hashInput = sp.sha256(bytes_random_number)
+        secret_key = sp.nat(92018)
+        bytes_secret_key = sp.pack(secret_key)
+        hashInput = sp.sha256(bytes_secret_key)
+        wrong_key = sp.nat(102018)
         amount = sp.tez(2)
+        wrong_amount = sp.tez(1)
 
-        s.h3("The authorized admin successfully calls commit")
-        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(sender=admin.address, amount=sp.tez(2), now=sp.timestamp_from_utc_now())
+        s.h3("Admin doesn't have enough tez to commit")
+        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(sender=alice.address, amount=wrong_amount, now=sp.timestamp_from_utc_now(), valid=False)
 
-        s.h3("The unauthorized user alice unsuccessfully calls commit")
-        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(sender=alice.address, amount=sp.tez(2), now=sp.timestamp_from_utc_now(), valid=False)
-    
-        s.h3("The authorized admin can't commit twice without the receiver revealing first")
-        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(sender=admin.address, amount=sp.tez(2), now=sp.timestamp_from_utc_now(), valid=False)
+        s.h3("Admin successfully commits")
+        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(source=alice.address, amount=amount, now=sp.timestamp_from_utc_now())
 
-        s.h2("Test 'reveal' entrypoint")
-        number = sp.nat(345)
+        s.h3("Attacker calls commit")
+        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(sender=mallory.address, amount=amount, now=sp.timestamp_from_utc_now(), valid=False)
 
-        s.h3("The authorized receiver successfully calls reveal")
-        r.reveal(number).run(sender=bob.address, now=sp.timestamp_from_utc_now().add_seconds(400))
+        s.h3("Admin calls commit twice")
+        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(sender=admin.address, amount=amount, now=sp.timestamp_from_utc_now(), valid=False)
 
-        s.h3("The authorized receiver unsuccessfully calls reveal twice")
-        r.reveal(number).run(sender=bob.address, now=sp.timestamp_from_utc_now().add_seconds(600), valid=False)
+        s.h3("Receiver cannot reveal unless 5 minutes have passed")
+        r.reveal(secret_key).run(sender=bob.address, now=sp.timestamp_from_utc_now(), valid=False)
 
-        s.h2("Test 'commit' again")
+        s.h3("Receiver calls reveal with the wrong secret key")
+        r.reveal(wrong_key).run(source=bob.address, now=sp.timestamp_from_utc_now().add_seconds(400), valid=False)
 
-        s.h3("The authorized admin doesn't have enough tez to call commit")
-        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(sender=admin.address, amount=sp.tez(1), now=sp.timestamp_from_utc_now(), valid=False)
+        s.h3("Attacker calls reveal")
+        r.reveal(secret_key).run(source=mallory.address, now=sp.timestamp_from_utc_now().add_seconds(400), valid=False)
 
-        s.h3("The authorized admin successfully calls commit")
-        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(sender=admin.address, amount=sp.tez(2), now=sp.timestamp_from_utc_now())
+        s.h3("Receiver successfully calls reveal")
+        r.reveal(secret_key).run(source=bob.address, now=sp.timestamp_from_utc_now().add_seconds(400))
 
-        s.h2("Test 'reveal' again")
-        number = sp.nat(345)
-
-        s.h3("The authorized receiver cannot reveal unless 5 minutes have passed")
-        r.reveal(number).run(sender=bob.address, now=sp.timestamp_from_utc_now(), valid=False)
-
-        number = sp.nat(344)
-
-        s.h3("Reveal did not match commit")
-        r.reveal(number).run(sender=bob.address, now=sp.timestamp_from_utc_now().add_seconds(400), valid=False)
-
-        number = sp.nat(345)
-
-        s.h3("The authorized receiver successfully calls reveal")
-        r.reveal(number).run(sender=bob.address, now=sp.timestamp_from_utc_now().add_seconds(400))
+        s.h3("Receiver calls reveal twice")
+        r.reveal(secret_key).run(sender=bob.address, now=sp.timestamp_from_utc_now().add_seconds(600), valid=False)
+        
+        s.h3("Admin successfully commits again")
+        r.commit(receiver=bob.address, amount=amount, hash=hashInput).run(source=alice.address, amount=amount, now=sp.timestamp_from_utc_now())
