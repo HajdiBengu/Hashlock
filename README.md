@@ -20,9 +20,9 @@ On other communication channels the admin sends the random number to the intende
 
 For a more in-depth explanation, please consider reading my Medium articles on the Commit/Reveal Technique:
 
-[The Commit/Reveal (Part 1): Introduction](https://medium.com/@hajdibengu/the-commit-reveal-part-1-introduction-9851e6feb7b0)
+[The Commit/Reveal (Part 1): Introduction](https://medium.com/@hajdibengu/the-commit-reveal-part-1-introduction-9851e6feb7b0).
 
-[The Commit/Reveal (Part 2): Tezos Example](https://medium.com/@hajdibengu/the-commit-reveal-part-2-tezos-example-6413fc440073)
+[The Commit/Reveal (Part 2): Tezos Example](https://medium.com/@hajdibengu/the-commit-reveal-part-2-tezos-example-6413fc440073).
 
 #### How to use the contract:
 This exact contract is deployed in the Ghostnet of Tezos with this contract address: ***KT1MkwdjF6KUnUrR268MGN5Ue6W2zNsYiM4c***. You’ll need a Tezos address to interact with it. However note that only the originator address can call the “commit” function and the “reveal” function won’t work unless you are the intended receiver.
