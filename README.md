@@ -21,6 +21,7 @@ On other communication channels the admin sends the random number to the intende
 For a more in-depth explanation, please consider reading my Medium articles on the Commit/Reveal Technique:
 
 [The Commit/Reveal (Part 1): Introduction](https://medium.com/@hajdibengu/the-commit-reveal-part-1-introduction-9851e6feb7b0)
+
 [The Commit/Reveal (Part 2): Tezos Example](https://medium.com/@hajdibengu/the-commit-reveal-part-2-tezos-example-6413fc440073)
 
 #### How to use the contract:
